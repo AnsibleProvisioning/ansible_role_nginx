@@ -1,0 +1,44 @@
+---
+- name: Nginx | Add site config
+  become: yes
+  template:
+      src: "{{ item }}"
+      dest: /etc/nginx/sites-available/{{ nginx.server_name }}
+  with_first_found:
+      - files:
+          - "{{ nginx.template }}"
+          - default.tpl
+        skip: false
+
+- name: Nginx | Check for existing config
+  stat:
+      path: /etc/nginx/sites-enabled/{{ nginx.server_name }}
+  register: config
+
+- name: Nginx | Delete config
+  become: yes
+  file:
+      path: /etc/nginx/sites-enabled/{{ nginx.server_name }}
+      state: absent
+  when: config.stat.exists == true
+
+- name: Nginx | Link new config
+  become: yes
+  file:
+      src: /etc/nginx/sites-available/{{ nginx.server_name }}
+      dest: /etc/nginx/sites-enabled/{{ nginx.server_name }}
+      owner: root
+      group: root
+      state: link
+  notify: restart nginx
+
+- name: Nginx | Check for default config
+  stat:
+      path: /etc/nginx/sites-enabled/default
+  register: default_config
+
+- name: Nginx | Delete the default config
+  file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+  when: default_config.stat.exists == true

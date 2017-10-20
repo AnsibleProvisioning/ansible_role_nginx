@@ -1,0 +1,26 @@
+---
+- name: Nginx | Create SSL directory
+  become: yes
+  file:
+      path: '/etc/nginx/ssl'
+      state: directory
+
+- name: Nginx | Copy dhparam.pem
+  copy:
+      src: "{{ nginx.ssl.certificate.dhparam }}"
+      dest: '/etc/nginx/ssl/dhparam.pem'
+  when: nginx.ssl.certificate.dhparam is defined
+
+- name: Nginx | Copy SSL certificates
+  become: yes
+  copy:
+      src: "{{ nginx.ssl.copy_path }}"
+      dest: '/etc/nginx/ssl/'
+  when: nginx.ssl.copy_path is defined
+
+- name: Nginx | Copy SSL template
+  become: yes
+  template:
+      src: "{{ nginx.ssl.template }}"
+      dest: '/etc/nginx/snippets/ssl-settings.conf'
+  when: nginx.ssl.template is defined

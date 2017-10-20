@@ -1,0 +1,14 @@
+---
+- name: Nginx | Install
+  become: yes
+  apt:
+      pkg: nginx
+      state: latest
+
+- include: ssl.yml
+  when: nginx.ssl.use == "yes"
+
+- include: conf.yml
+  when: nginx.conf_dir is defined
+
+- include: vhosts.yml

@@ -1,0 +1,18 @@
+---
+nginx:
+    install: true
+    doc_root: /var/www
+    server_name: awesome.dev
+    index: index.php
+    template: default.conf
+    conf_dir: ''
+    client_max_body_size: 1m
+    ssl:
+        use: no
+        copy_path: "{{ files_dir }}/ssl/prod-test/*"
+        template: "{{ templates_dir }}/nginx/ssl-template.conf"
+        certificate:
+            crt: '/etc/letsencrypt/live/example.com/cert.pem'
+            key: '/etc/letsencrypt/live/example.com/fullchain.pem'
+            bundle: '/etc/letsencrypt/live/example.com/chain.pem'
+            dhparam: '/etc/nginx/snippets/example.com/dhparam.pem'
