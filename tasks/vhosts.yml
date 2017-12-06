@@ -1,32 +1,38 @@
 ---
+- set_fact:
+    vhost: "{{ item[0] }}"
+    ssl: "{{ item[1] }}"
+
+- name: Clean sites enabled
+  file:
+      state: absent
+      path: "/etc/nginx/sites-enabled/*"
+  run_once: true
+
+- name: Nginx | Add SSL config
+  include_tasks: ssl.yml
+  when:
+      - vhost.ssl == True
+      - vhost.name == ssl.name
+
 - name: Nginx | Add site config
   become: yes
   template:
-      src: "{{ item }}"
-      dest: /etc/nginx/sites-available/{{ nginx.server_name }}
+      src: "{{ host }}"
+      dest: "/etc/nginx/sites-available/{{ vhost.name }}"
   with_first_found:
       - files:
-          - "{{ nginx.template }}"
-          - default.tpl
+          - "{{ vhost.template }}"
+          - default.conf.j2
         skip: false
+  loop_control:
+      loop_var: host
 
-- name: Nginx | Check for existing config
-  stat:
-      path: /etc/nginx/sites-enabled/{{ nginx.server_name }}
-  register: config
-
-- name: Nginx | Delete config
+- name: Nginx | Link config
   become: yes
   file:
-      path: /etc/nginx/sites-enabled/{{ nginx.server_name }}
-      state: absent
-  when: config.stat.exists == true
-
-- name: Nginx | Link new config
-  become: yes
-  file:
-      src: /etc/nginx/sites-available/{{ nginx.server_name }}
-      dest: /etc/nginx/sites-enabled/{{ nginx.server_name }}
+      src: "/etc/nginx/sites-available/{{ vhost.name }}"
+      dest: "/etc/nginx/sites-enabled/{{ vhost.name }}"
       owner: root
       group: root
       state: link
@@ -41,4 +47,6 @@
   file:
       path: /etc/nginx/sites-enabled/default
       state: absent
-  when: default_config.stat.exists == true
+  when:
+      - default_config.stat.exists == true
+      - nginx_remove_default_config == true

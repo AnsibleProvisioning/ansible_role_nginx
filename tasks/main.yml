@@ -1,3 +1,17 @@
 ---
-- include: install.yml
-  when: "{{ nginx.install == true }}"
+- name: Nginx | Install
+  become: yes
+  apt:
+      pkg: nginx
+      state: latest
+  tags: [nginx, nginx-system]
+
+- include_tasks: conf.yml
+  tags: [nginx, nginx-conf]
+  when: nginx.conf_dir is defined
+
+- include_tasks: vhosts.yml
+  with_nested:
+      - "{{ nginx_vhosts }}"
+      - "{{ nginx_ssl }}"
+  tags: [nginx, nginx-vhosts]

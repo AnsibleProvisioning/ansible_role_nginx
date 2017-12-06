@@ -1,0 +1,26 @@
+ssl on;
+ssl_certificate {{ ssl.crt }};
+ssl_certificate_key {{ ssl.key }};
+ssl_trusted_certificate {{ ssl.bundle }};
+
+ssl_dhparam {{ ssl.dhparam }};
+
+ssl_protocols {{ nginx_ssl_settings_protocols }};
+ssl_ciphers {{ nginx_ssl_settings_ciphers }};
+ssl_prefer_server_ciphers {{ nginx_ssl_settings_prefer_server_ciphers }};
+
+ssl_ecdh_curve {{ nginx_ssl_settings_ecdh_curve }};
+ssl_session_cache {{ nginx_ssl_settings_session_cache }};
+ssl_session_tickets {{ nginx_ssl_settings_session_tickets }};
+
+ssl_stapling {{ nginx_ssl_settings_stapling }};
+ssl_stapling_verify {{ nginx_ssl_settings_stapling_verify }};
+
+resolver {{ nginx_ssl_settings_resolver }};
+resolver_timeout {{ nginx_ssl_settings_timeout }};
+
+{% if nginx_ssl_settings_headers.0 is defined %}
+    {% for item in nginx_ssl_settings_headers %}
+add_header {{ item }};
+    {% endfor %}
+{% endif %}

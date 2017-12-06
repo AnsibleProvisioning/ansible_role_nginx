@@ -1,7 +1,12 @@
 ---
 # this file will copy any .conf files to /etc/nginx/conf.d/
+- stat:
+      path: "{{ nginx_custom_conf_dir }}"
+  register: custom_conf_dir
+
 - name: Nginx | Copy .conf files
   become: yes
   copy:
-      src: "{{ nginx.conf_dir }}"
+      src: "{{ nginx_custom_conf_dir }}/*"
       dest: '/etc/nginx/conf.d/'
+  when: custom_conf_dir.stat.isdir is defined and custom_conf_dir.stat.isdir

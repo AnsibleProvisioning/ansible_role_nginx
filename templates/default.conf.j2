@@ -1,0 +1,33 @@
+server {
+    listen 80;
+
+    server_name {{ vhost.name }};
+    client_max_body_size {{ vhost.max_body_size }};
+
+    root {{ vhost.root }};
+    index {{ vhost.index_file }};
+
+    access_log /var/log/nginx/{{ vhost.name }}.access.log;
+    error_log /var/log/nginx/{{ vhost.name }}.error.log;
+
+    location ~ \.php$ {
+        set $path_info $fastcgi_path_info;
+        fastcgi_index {{ vhost.index_file }};
+        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+        try_files $uri $uri/ {{ vhost.index_file }}$is_args$args;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_pass unix:/var/run/php/php{{ php_version }}-fpm.sock;
+
+        fastcgi_param SCRIPT_FILENAME $request_filename;
+        fastcgi_param APP_ENV dev;
+    }
+
+    location / {
+        root {{ vhost.root }};
+        try_files $uri $uri/ /{{ vhost.index_file }}$is_args$args;
+        autoindex off;
+        index {{ vhost.index_file }};
+    }
+
+    sendfile off;
+}

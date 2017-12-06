@@ -1,18 +1,25 @@
 ---
-nginx:
-    install: true
-    doc_root: /var/www
-    server_name: awesome.dev
-    index: index.php
-    template: default.conf
-    conf_dir: ''
-    client_max_body_size: 1m
-    ssl:
-        use: no
-        copy_path: "{{ files_dir }}/ssl/prod-test/*"
-        template: "{{ templates_dir }}/nginx/ssl-template.conf"
-        certificate:
-            crt: '/etc/letsencrypt/live/example.com/cert.pem'
-            key: '/etc/letsencrypt/live/example.com/fullchain.pem'
-            bundle: '/etc/letsencrypt/live/example.com/chain.pem'
-            dhparam: '/etc/nginx/snippets/example.com/dhparam.pem'
+nginx_custom_conf_dir: "{{ files_dir }}/nginx/confs"
+nginx_remove_default_config: yes
+
+nginx_vhosts:
+     - { name: test.dev, root: /var/www/test.dev, index_file: index.php, template: default.conf.j2, ssl: no,  max_body_size: 1m }
+
+nginx_ssl:
+     - { name: test1.dev, crt: '/etc/nginx/ssl/test.dev/cert.pem', key: '/etc/nginx/ssl/test.dev/privatekey.pem', bundle: '/etc/nginx/ssl/test.dev/chain.pem', dhparam: '/etc/nginx/ssl/test.dev/dhparam.pem', settings_template: default_ssl_settings.conf.j2, copy_path: "{{ ssl_dir }}/test2.dev" }
+
+# Most likely won't need to edit these, but just in case
+nginx_ssl_settings_protocols: "TLSv1 TLSv1.1 TLSv1.2"
+nginx_ssl_settings_ciphers: 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA'
+nginx_ssl_settings_prefer_server_ciphers: "on"
+nginx_ssl_settings_ecdh_curve: "secp384r1"
+nginx_ssl_settings_session_cache: "shared:SSL:10m"
+nginx_ssl_settings_session_tickets: "off"
+nginx_ssl_settings_stapling: "on"
+nginx_ssl_settings_stapling_verify: "on"
+nginx_ssl_settings_resolver: "8.8.8.8 8.8.4.4 valid=300s"
+nginx_ssl_settings_timeout: "5s"
+nginx_ssl_settings_headers:
+    - 'Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"'
+    - 'X-Frame-Options SAMEORIGIN'
+    - 'X-Content-Type-Options nosniff'

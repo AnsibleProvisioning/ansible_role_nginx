@@ -1,26 +1,30 @@
 ---
-- name: Nginx | Create SSL directory
+- debug:
+      var: ssl
+
+- name: Nginx | Create SSL directories
   become: yes
   file:
-      path: '/etc/nginx/ssl'
+      path: "{{ ssl_dir_name }}"
       state: directory
-
-- name: Nginx | Copy dhparam.pem
-  copy:
-      src: "{{ nginx.ssl.certificate.dhparam }}"
-      dest: '/etc/nginx/ssl/dhparam.pem'
-  when: nginx.ssl.certificate.dhparam is defined
+  with_items:
+      - "/etc/nginx/ssl/{{ ssl.name }}"
+      - "/etc/nginx/snippets/{{ ssl.name }}"
+  loop_control:
+      loop_var: ssl_dir_name
 
 - name: Nginx | Copy SSL certificates
   become: yes
   copy:
-      src: "{{ nginx.ssl.copy_path }}"
-      dest: '/etc/nginx/ssl/'
-  when: nginx.ssl.copy_path is defined
+      src: "{{ item }}"
+      dest: "/etc/nginx/ssl/{{ ssl.name }}/"
+  with_fileglob:
+      - "{{ ssl.copy_path }}/*"
+  when: config.copy_path is defined
 
 - name: Nginx | Copy SSL template
   become: yes
   template:
-      src: "{{ nginx.ssl.template }}"
-      dest: '/etc/nginx/snippets/ssl-settings.conf'
-  when: nginx.ssl.template is defined
+      src: "{{ ssl.settings_template }}"
+      dest: "/etc/nginx/snippets/{{ ssl.name }}/ssl-settings.conf"
+  when: ssl.settings_template is defined
